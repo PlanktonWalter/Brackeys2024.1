@@ -54,7 +54,7 @@ public sealed class Ben : MonoBehaviour
         if (IsHungry == true)
         {
             Delayed.Do(() => _hungrySound.Play(_audioSource), answerDelay);
-            Delayed.Do(() => Notification.Do("Is he... hungry?"), textDelay);
+            Delayed.Do(() => Notification.Do("Is he... hungry?", 1.5f), textDelay);
         }
         else
         {
@@ -65,7 +65,7 @@ public sealed class Ben : MonoBehaviour
     private void SayCode()
     {
         Delayed.Do(() => _happySound.Play(_audioSource), answerDelay);
-        Delayed.Do(() => Notification.Do($"Is he saying... {_codeReward.Value}?"), textDelay);
+        Delayed.Do(() => Notification.Do($"Is he saying... {_codeReward.Value}?", 2.5f), textDelay);
     }
 
 }

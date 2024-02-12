@@ -15,8 +15,8 @@ public sealed class PlayerCharacter : Pawn
     [SerializeField] private float _jumpForce;
 
     private CharacterController _controller;
-    private float xRotation;
-    private float yRotation;
+    private float _xRotation;
+    private float _yRotation;
     private Vector3 _velocityXZ;
     private float _velocityY;
 
@@ -34,8 +34,8 @@ public sealed class PlayerCharacter : Pawn
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        xRotation = _head.localEulerAngles.x;
-        yRotation = transform.eulerAngles.y;
+        _xRotation = _head.localEulerAngles.x;
+        _yRotation = transform.eulerAngles.y;
     }
 
     public override void PossessedTick()
@@ -81,12 +81,12 @@ public sealed class PlayerCharacter : Pawn
         float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * 100f;
 
-        yRotation += mouseX * Time.deltaTime;
-        xRotation -= mouseY * Time.deltaTime;
-        xRotation = Mathf.Clamp(xRotation, -70f, 70f);
+        _yRotation += mouseX * Time.deltaTime;
+        _xRotation -= mouseY * Time.deltaTime;
+        _xRotation = Mathf.Clamp(_xRotation, -70f, 70f);
 
-        transform.eulerAngles = new Vector3(0f, yRotation, 0f);
-        _head.localEulerAngles = new Vector3(xRotation, 0f, 0f);
+        transform.eulerAngles = new Vector3(0f, _yRotation, 0f);
+        _head.localEulerAngles = new Vector3(_xRotation, 0f, 0f);
     }
 
     private void UpdateMovement(FlatVector inputDirection, bool wantsJump)
