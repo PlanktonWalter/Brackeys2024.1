@@ -3,7 +3,7 @@
 public sealed class EnterCodeInteraction : Interaction
 {
 
-    [SerializeField] private CodeLockPawn _codeLock;
+    [SerializeField] private SafeLock _codeLock;
 
     public override string Text => "Enter code";
 

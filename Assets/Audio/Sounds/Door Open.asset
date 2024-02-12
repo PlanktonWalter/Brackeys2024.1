@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d2d03bfe80cc0be478f0935d421b26f1, type: 3}
-  m_Name: Sound Door Open
+  m_Name: Door Open
   m_EditorClassIdentifier: 
   _clips:
   - {fileID: 8300000, guid: 2b96ee813be648d4db009a167fcf736b, type: 3}
