@@ -14,7 +14,10 @@ public sealed class FeedBenInteraction : Interaction
 
     public override void Perform(PlayerCharacter player)
     {
-        _ben.TryFeed(player);
+        if (_ben.TryFeed(player) == false)
+        {
+            Notification.Do("I don't have any food...");
+        }
     }
 }
 

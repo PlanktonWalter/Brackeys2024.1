@@ -6,11 +6,16 @@ using UnityEngine;
 public sealed class Ben : MonoBehaviour
 {
 
+    private const float answerDelay = 1.0f;
+    private const float textDelay = 1.84f;
+    private const float feedDelay = 0.5f;
+
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private Sound _hungrySound;
     [SerializeField] private Sound _happySound;
     [SerializeField] private ItemTag _foodTag;
     [SerializeField] private Code _codeReward;
+
     public ItemTag FoodTag => _foodTag;
     public bool IsHungry { get; private set; } = true;
 
@@ -40,8 +45,7 @@ public sealed class Ben : MonoBehaviour
             return true;
         }
 
-        _hungrySound.Play(_audioSource);
-        Notification.Do("I don't have any food...");
+        Delayed.Do(() => _hungrySound.Play(_audioSource), feedDelay);
         return false;
     }
 
@@ -49,8 +53,8 @@ public sealed class Ben : MonoBehaviour
     {
         if (IsHungry == true)
         {
-            _hungrySound.Play(_audioSource);
-            Notification.Do("Is he... hungry?");
+            Delayed.Do(() => _hungrySound.Play(_audioSource), answerDelay);
+            Delayed.Do(() => Notification.Do("Is he... hungry?"), textDelay);
         }
         else
         {
@@ -60,8 +64,8 @@ public sealed class Ben : MonoBehaviour
 
     private void SayCode()
     {
-        _happySound.Play(_audioSource);
-        Notification.Do($"Is he saying... {_codeReward.Value}?");
+        Delayed.Do(() => _happySound.Play(_audioSource), answerDelay);
+        Delayed.Do(() => Notification.Do($"Is he saying... {_codeReward.Value}?"), textDelay);
     }
 
 }
