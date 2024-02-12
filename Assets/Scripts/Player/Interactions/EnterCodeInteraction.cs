@@ -7,6 +7,11 @@ public sealed class EnterCodeInteraction : Interaction
 
     public override string Text => "Enter code";
 
+    public override bool IsAvaliable(PlayerCharacter player)
+    {
+        return _codeLock.IsOpen == false;
+    }
+
     public override void Perform(PlayerCharacter player)
     {
         player.Player.Possess(_codeLock);

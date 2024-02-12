@@ -15,6 +15,8 @@ public sealed class SafeLock : Pawn
     private TimeSince _timeSinceLastPress;
     private string _currentEnteredCode;
 
+    public bool IsOpen { get; private set; }
+
     public override Vector3 GetCameraPosition() => _head.position;
     public override Quaternion GetCameraRotation() => _head.rotation;
 
@@ -90,6 +92,7 @@ public sealed class SafeLock : Pawn
         if (code == _code.Value.ToString())
         {
             _targetDoor.Unblock();
+            IsOpen = true;
             _targetDoor.Open();
             Unpossess();
         }
