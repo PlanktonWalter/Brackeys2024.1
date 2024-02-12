@@ -352,6 +352,7 @@ MonoBehaviour:
   _audioSource: {fileID: 1546019220435208983}
   _openSound: {fileID: 11400000, guid: a71c6c56393014d41be0fbcc6f712162, type: 2}
   _closeSound: {fileID: 11400000, guid: 1571adf185d419940937ed6dc2aa5fae, type: 2}
+  _knockSound: {fileID: 11400000, guid: c9db0d554a1412c4cbf5a8e20cb916ba, type: 2}
 --- !u!1 &8284442354577557936
 GameObject:
   m_ObjectHideFlags: 0

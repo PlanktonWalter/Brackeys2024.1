@@ -9,6 +9,6 @@ public sealed class KnockDoorInteraction : Interaction
 
     public override void Perform(PlayerCharacter player)
     {
-        Notification.Do("Knock knock");
+        _door.Knock();
     }
 }

@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class Door : MonoBehaviour
 {
+
+    public event Action SomeoneKnocked;
 
     [SerializeField] private Collider _collision;
     [SerializeField] private Transform _rotator;
@@ -14,6 +17,7 @@ public sealed class Door : MonoBehaviour
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private Sound _openSound;
     [SerializeField] private Sound _closeSound;
+    [SerializeField] private Sound _knockSound;
 
     private bool _isOpen;
     private bool _isAnimating;
@@ -52,6 +56,12 @@ public sealed class Door : MonoBehaviour
         _timeSinceAnimationStarted = new TimeSince(Time.time);
         _isAnimating = true;
         _IsCollisionSynched = false;
+    }
+
+    public void Knock()
+    {
+        SomeoneKnocked?.Invoke();
+        _knockSound.Play(_audioSource);
     }
 
     private void Update()

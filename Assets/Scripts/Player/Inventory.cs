@@ -13,6 +13,17 @@ public class Inventory : MonoBehaviour
 
     public Item[] Content => _items.ToArray();
 
+    public bool HasItemWithTag(ItemTag tag)
+    {
+        foreach (var item in _items)
+        {
+            if (item.HasTag(tag) == true)
+                return true;
+        }
+
+        return false;
+    }
+
     public void AddItem(Item item)
     {
         _items.Add(item);

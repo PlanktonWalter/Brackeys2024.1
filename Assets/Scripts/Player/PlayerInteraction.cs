@@ -60,7 +60,7 @@ public sealed class PlayerInteraction : MonoBehaviour
     {
         foreach (var interaction in target.GetComponents<Interaction>())
         {
-            if (interaction.IsAvaliable == false)
+            if (interaction.IsAvaliable(_player) == false)
                 return;
 
             interactions.Add(interaction);
@@ -72,7 +72,7 @@ public sealed class PlayerInteraction : MonoBehaviour
 public abstract class Interaction : MonoBehaviour
 {
     public abstract string Text { get; }
-    public virtual bool IsAvaliable => true;
+    public virtual bool IsAvaliable(PlayerCharacter player) => true;
     public abstract void Perform(PlayerCharacter player);
 
 }

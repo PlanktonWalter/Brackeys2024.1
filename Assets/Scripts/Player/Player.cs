@@ -5,6 +5,7 @@ public sealed class Player : MonoBehaviour
 
     [SerializeField] private Pawn _defaultPawn;
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private GameObject _hud;
 
     private Pawn _currentPawn;
 
@@ -49,6 +50,8 @@ public sealed class Player : MonoBehaviour
 
         _currentPawn = pawn;
         _currentPawn.OnPossessed(this);
+
+        _hud.SetActive(pawn == _defaultPawn);
     }
 
     public void Unpossess()
