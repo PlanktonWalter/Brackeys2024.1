@@ -24,7 +24,7 @@ public sealed class InteractorUI : MonoBehaviour
         _player.Interactor.TargetChanged -= OnTargetChanged;
     }
 
-    private void OnTargetChanged(List<IInteraction> interactions)
+    private void OnTargetChanged(List<Interaction> interactions)
     {
         foreach (var text in _activeTexts)
         {

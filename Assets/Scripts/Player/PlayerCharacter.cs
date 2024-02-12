@@ -1,11 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInteraction))]
-public sealed class PlayerCharacter : MonoBehaviour
+public sealed class PlayerCharacter : Pawn
 {
 
     [SerializeField] private Transform _head;
@@ -39,7 +38,7 @@ public sealed class PlayerCharacter : MonoBehaviour
         yRotation = transform.eulerAngles.y;
     }
 
-    private void Update()
+    public override void PossessedTick()
     {
         UpdateRotation();
 
@@ -121,6 +120,42 @@ public sealed class PlayerCharacter : MonoBehaviour
     private float GetSpeed()
     {
         return _speed;
+    }
+
+    public override Vector3 GetCameraPosition()
+    {
+        return _head.position;
+    }
+
+    public override Quaternion GetCameraRotation()
+    {
+        return _head.rotation;
+    }
+
+}
+
+public abstract class Pawn : MonoBehaviour
+{
+    public bool WantsUnpossess { get; private set; }
+    public Player Player { get; private set; }
+
+    public abstract Vector3 GetCameraPosition();
+    public abstract Quaternion GetCameraRotation();
+    public virtual void PossessedTick() { }
+
+    public virtual void OnPossessed(Player player)
+    {
+        Player = player;
+    }
+
+    public virtual void OnUnpossessed()
+    {
+        Player = null;
+    }
+
+    protected void Unpossess()
+    {
+        WantsUnpossess = true;
     }
 
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(PickupInteraction))]
 public class Item : MonoBehaviour
 {
     [field: SerializeField] public string DisplayName { get; private set; }
