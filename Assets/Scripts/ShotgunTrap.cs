@@ -13,6 +13,11 @@ public sealed class ShotgunTrap : MonoBehaviour
 
     private bool IsDeactivated;
 
+    public void Activate()
+    {
+        IsDeactivated = false;
+    }
+
     public void Deactivate()
     {
         IsDeactivated = true;
