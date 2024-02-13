@@ -40,6 +40,7 @@ public sealed class Ben : MonoBehaviour
                 continue;
 
             character.Inventory.RemoveItem(item);
+            item.Destroy();
             IsHungry = false;
             SayCode();
             return true;

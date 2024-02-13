@@ -76,7 +76,8 @@ public sealed class PlayerCharacter : Pawn
             if (Input.GetKeyDown(KeyCode.B) == true)
                 _interactor.TryPerform(2);
 
-            if (Input.GetKeyDown(KeyCode.Q) == true)
+            const bool canThrowItems = false;
+            if (Input.GetKeyDown(KeyCode.Q) == true && canThrowItems == true)
             {
                 var items = _inventory.Content;
                 if (items.Length > 0)

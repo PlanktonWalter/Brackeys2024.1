@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody), typeof(PickupInteraction))]
+[RequireComponent(typeof(PickupInteraction))]
 public class Item : MonoBehaviour
 {
     [field: SerializeField] public string DisplayName { get; private set; }
@@ -17,6 +17,7 @@ public class Item : MonoBehaviour
 
     public void Push(Vector3 force)
     {
+        throw new NotImplementedException();
         GetComponent<Rigidbody>().AddForce(force);
     }
 
@@ -28,6 +29,11 @@ public class Item : MonoBehaviour
     public virtual void OnDropped()
     {
         gameObject.SetActive(true);
+    }
+
+    public void Destroy()
+    {
+        Destroy(gameObject);
     }
 
 }
