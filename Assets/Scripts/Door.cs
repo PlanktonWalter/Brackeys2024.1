@@ -84,7 +84,9 @@ public sealed class Door : MonoBehaviour
 
         if (_IsCollisionSynched == false && _timeSinceAnimationStarted > _animationDuration * 0.3f)
         {
-            _collision.enabled = _isOpen;
+            if (_collision != null)
+                _collision.enabled = _isOpen;
+
             _IsCollisionSynched = true;
         }
 
