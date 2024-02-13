@@ -43,56 +43,8 @@ public sealed class PlayerCharacter : Pawn
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    public override void PossessedTick()
-    {
-        if (IsDead == true && _timeSinceLastDeath > 5f)
-        {
-            Respawn();
-            return;
-        }
-
-        UpdateRotation();
-
-        FlatVector inputDirection = new FlatVector()
-        {
-            x = Input.GetKey(KeyCode.D) ? 1 : Input.GetKey(KeyCode.A) ? -1 : 0,
-            z = Input.GetKey(KeyCode.W) ? 1 : Input.GetKey(KeyCode.S) ? -1 : 0
-        };
-
-        inputDirection.Normalize();
-
-        bool wantsJump = Input.GetKeyDown(KeyCode.Space);
-
-        UpdateMovement(inputDirection, wantsJump);
-
-        if (CanAct() == true)
-        {
-            if (Input.GetKeyDown(KeyCode.F) == true)
-                _interactor.TryPerform(0);
-
-            if (Input.GetKeyDown(KeyCode.E) == true)
-                _interactor.TryPerform(1);
-
-            if (Input.GetKeyDown(KeyCode.B) == true)
-                _interactor.TryPerform(2);
-
-            const bool canThrowItems = false;
-            if (Input.GetKeyDown(KeyCode.Q) == true && canThrowItems == true)
-            {
-                var items = _inventory.Content;
-                if (items.Length > 0)
-                {
-                    var item = items[0];
-                    _inventory.RemoveItem(item);
-                    item.transform.position = _head.position;
-                    item.Push(_head.forward * 250f + _velocityXZ * 45f);
-                }
-            }
-        }
-    }
-
     public void Kill()
-    {  
+    {
         IsDead = true;
         _timeSinceLastDeath = new TimeSince(Time.time);
         Died?.Invoke();
@@ -109,16 +61,83 @@ public sealed class PlayerCharacter : Pawn
         _head.localRotation = Quaternion.identity;
     }
 
-    private void UpdateRotation()
+    public override void PossessedTick()
+    {
+        if (IsDead == true)
+        {
+            UpdateDead();
+        }
+        else
+        {
+            var input = GatherInput();
+            UpdateAlive(input);
+        }     
+    }
+
+    private PlayerInput GatherInput()
+    {
+        var playerInput = new PlayerInput();
+
+        playerInput.MouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * 100f;
+        playerInput.MouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * 100f;
+
+        playerInput.Direction = new FlatVector()
+        {
+            x = Input.GetKey(KeyCode.D) ? 1 : Input.GetKey(KeyCode.A) ? -1 : 0,
+            z = Input.GetKey(KeyCode.W) ? 1 : Input.GetKey(KeyCode.S) ? -1 : 0
+        }.normalized;
+
+        playerInput.WantsJump = Input.GetKeyDown(KeyCode.Space);
+
+        if (Input.GetKeyDown(KeyCode.F) == true)
+            playerInput.InteractionIndex = 0;
+        else if (Input.GetKeyDown(KeyCode.E) == true)
+            playerInput.InteractionIndex = 1;
+        else if (Input.GetKeyDown(KeyCode.B) == true)
+            playerInput.InteractionIndex = 2;
+        else
+            playerInput.InteractionIndex = -1;
+
+        return playerInput;
+    }
+
+    private void UpdateDead()
+    {
+        if (_timeSinceLastDeath > 5f)
+            Respawn();
+    }
+
+    private void UpdateAlive(PlayerInput input)
+    {
+        UpdateRotation(input);
+        UpdateMovement(input);
+
+        if (CanInteract() == true && input.WantsInteract == true)
+        {
+            _interactor.TryPerform(input.InteractionIndex);
+        }
+
+        const bool canThrowItems = false;
+        if (Input.GetKeyDown(KeyCode.Q) == true && canThrowItems == true)
+        {
+            var items = _inventory.Content;
+            if (items.Length > 0)
+            {
+                var item = items[0];
+                _inventory.RemoveItem(item);
+                item.transform.position = _head.position;
+                item.Push(_head.forward * 250f + _velocityXZ * 45f);
+            }
+        }
+    }
+
+    private void UpdateRotation(PlayerInput input)
     {
         if (CanRotateHead() == false)
             return;
 
-        float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * 100f;
-        float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * 100f;
-
-        var yRotation = transform.eulerAngles.y + mouseX * Time.deltaTime;
-        var xRotation = _head.localEulerAngles.x - mouseY * Time.deltaTime;
+        var yRotation = transform.eulerAngles.y + input.MouseX * Time.deltaTime;
+        var xRotation = _head.localEulerAngles.x - input.MouseY * Time.deltaTime;
         xRotation = ClampAngle(xRotation, -70f, 70f);
 
         transform.eulerAngles = new Vector3(0f, yRotation, 0f);
@@ -132,17 +151,17 @@ public sealed class PlayerCharacter : Pawn
         }
     }
 
-    private void UpdateMovement(FlatVector inputDirection, bool wantsJump)
+    private void UpdateMovement(PlayerInput input)
     {
         Vector3 desiredVelocity = CanWalk() ?
-            transform.TransformDirection(inputDirection) * GetSpeed() :
+            transform.TransformDirection(input.Direction) * GetSpeed() :
             Vector3.zero;
         
         _velocityXZ = Vector3.MoveTowards(_velocityXZ, desiredVelocity, 25f * Time.deltaTime);
 
         if (_controller.isGrounded == true)
         {
-            _velocityY = wantsJump ? _jumpForce : -9.8f;
+            _velocityY = input.WantsJump ? _jumpForce : -9.8f;
         }
         else
         {
@@ -163,17 +182,17 @@ public sealed class PlayerCharacter : Pawn
 
     private bool CanRotateHead()
     {
-        return IsDead == false;
+        return true;
     }
 
-    private bool CanAct()
+    private bool CanInteract()
     {
-        return IsDead == false;
+        return true;
     }
 
     private bool CanWalk()
     {
-        return IsDead == false;
+        return true;
     }
 
     private float GetSpeed()
@@ -189,6 +208,16 @@ public sealed class PlayerCharacter : Pawn
     public override Quaternion GetCameraRotation()
     {
         return _head.rotation;
+    }
+
+    private struct PlayerInput
+    {
+        public float MouseX;
+        public float MouseY;
+        public FlatVector Direction;
+        public bool WantsJump;
+        public int InteractionIndex;
+        public bool WantsInteract => InteractionIndex != -1;
     }
 
 }
