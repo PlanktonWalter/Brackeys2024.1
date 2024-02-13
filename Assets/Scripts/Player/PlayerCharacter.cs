@@ -19,14 +19,11 @@ public sealed class PlayerCharacter : Pawn
     [SerializeField] private float _jumpForce;
 
     private CharacterController _controller;
-    private float _xRotation;
-    private float _yRotation;
     private Vector3 _velocityXZ;
     private float _velocityY;
     private TimeSince _timeSinceLastDeath = new TimeSince(float.NegativeInfinity);
     private Vector3 _spawnPosition;
     private Quaternion _spawnRotation;
-    private Quaternion _spawnHeadRotation;
 
     public PlayerInteraction Interactor => _interactor;
     public Inventory Inventory => _inventory;
@@ -41,13 +38,9 @@ public sealed class PlayerCharacter : Pawn
     {
         _spawnPosition = transform.position;
         _spawnRotation = transform.rotation;
-        _spawnHeadRotation = _head.localRotation;
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-
-        //_xRotation = _head.localEulerAngles.x;
-        //_yRotation = transform.eulerAngles.y;
     }
 
     public override void PossessedTick()
@@ -123,12 +116,19 @@ public sealed class PlayerCharacter : Pawn
         float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * 100f;
 
-        _yRotation += mouseX * Time.deltaTime;
-        _xRotation -= mouseY * Time.deltaTime;
-        _xRotation = Mathf.Clamp(_xRotation, -70f, 70f);
+        var yRotation = transform.eulerAngles.y + mouseX * Time.deltaTime;
+        var xRotation = _head.localEulerAngles.x - mouseY * Time.deltaTime;
+        xRotation = ClampAngle(xRotation, -70f, 70f);
 
-        transform.eulerAngles = new Vector3(0f, _yRotation, 0f);
-        _head.localEulerAngles = new Vector3(_xRotation, 0f, 0f);
+        transform.eulerAngles = new Vector3(0f, yRotation, 0f);
+        _head.localEulerAngles = new Vector3(xRotation, 0f, 0f);
+
+        float ClampAngle(float angle, float min, float max)
+        {
+            float start = (min + max) * 0.5f - 180;
+            float floor = Mathf.FloorToInt((angle - start) / 360) * 360;
+            return Mathf.Clamp(angle, min + floor, max + floor);
+        }
     }
 
     private void UpdateMovement(FlatVector inputDirection, bool wantsJump)
