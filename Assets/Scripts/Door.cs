@@ -7,6 +7,8 @@ public sealed class Door : MonoBehaviour
 {
 
     public event Action SomeoneKnocked;
+    public event Action Opened;
+    public event Action Closed;
 
     [SerializeField] private Collider _collision;
     [SerializeField] private Transform _rotator;
@@ -106,6 +108,11 @@ public sealed class Door : MonoBehaviour
             {
                 _closeSound?.Play(_audioSource);
             }
+
+            if (_isOpen == true)
+                Opened?.Invoke();
+            else
+                Closed?.Invoke();
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +7,9 @@ using UnityEngine.Serialization;
 [RequireComponent(typeof(CharacterController), typeof(PlayerInteraction))]
 public sealed class PlayerCharacter : Pawn
 {
+
+    public event Action Died;
+    public event Action Respawned;
 
     [SerializeField] private Transform _head;
     [SerializeField] private PlayerInteraction _interactor;
@@ -19,27 +23,41 @@ public sealed class PlayerCharacter : Pawn
     private float _yRotation;
     private Vector3 _velocityXZ;
     private float _velocityY;
+    private TimeSince _timeSinceLastDeath = new TimeSince(float.NegativeInfinity);
+    private Vector3 _spawnPosition;
+    private Quaternion _spawnRotation;
+    private Quaternion _spawnHeadRotation;
 
     public PlayerInteraction Interactor => _interactor;
     public Inventory Inventory => _inventory;
+    public bool IsDead { get; private set; }
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
-        //_interactor = GetComponent<PlayerInteraction>();
     }
 
     private void Start()
     {
+        _spawnPosition = transform.position;
+        _spawnRotation = transform.rotation;
+        _spawnHeadRotation = _head.localRotation;
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        _xRotation = _head.localEulerAngles.x;
-        _yRotation = transform.eulerAngles.y;
+        //_xRotation = _head.localEulerAngles.x;
+        //_yRotation = transform.eulerAngles.y;
     }
 
     public override void PossessedTick()
     {
+        if (IsDead == true && _timeSinceLastDeath > 5f)
+        {
+            Respawn();
+            return;
+        }
+
         UpdateRotation();
 
         FlatVector inputDirection = new FlatVector()
@@ -54,30 +72,54 @@ public sealed class PlayerCharacter : Pawn
 
         UpdateMovement(inputDirection, wantsJump);
 
-        if (Input.GetKeyDown(KeyCode.F) == true)
-            _interactor.TryPerform(0);
-
-        if (Input.GetKeyDown(KeyCode.E) == true)
-            _interactor.TryPerform(1);
-
-        if (Input.GetKeyDown(KeyCode.B) == true)
-            _interactor.TryPerform(2);
-
-        if (Input.GetKeyDown(KeyCode.Q) == true)
+        if (CanAct() == true)
         {
-            var items = _inventory.Content;
-            if (items.Length > 0)
+            if (Input.GetKeyDown(KeyCode.F) == true)
+                _interactor.TryPerform(0);
+
+            if (Input.GetKeyDown(KeyCode.E) == true)
+                _interactor.TryPerform(1);
+
+            if (Input.GetKeyDown(KeyCode.B) == true)
+                _interactor.TryPerform(2);
+
+            if (Input.GetKeyDown(KeyCode.Q) == true)
             {
-                var item = items[0];
-                _inventory.RemoveItem(item);
-                item.transform.position = _head.position;
-                item.Push(_head.forward * 250f + _velocityXZ * 45f);
+                var items = _inventory.Content;
+                if (items.Length > 0)
+                {
+                    var item = items[0];
+                    _inventory.RemoveItem(item);
+                    item.transform.position = _head.position;
+                    item.Push(_head.forward * 250f + _velocityXZ * 45f);
+                }
             }
         }
     }
 
+    public void Kill()
+    {  
+        IsDead = true;
+        _timeSinceLastDeath = new TimeSince(Time.time);
+        Died?.Invoke();
+        GetComponent<Animator>()?.SetBool("dead", true);
+    }
+
+    public void Respawn()
+    {
+        IsDead = false;
+        Respawned?.Invoke();
+        GetComponent<Animator>()?.SetBool("dead", false);
+        transform.position = _spawnPosition;
+        transform.rotation = _spawnRotation;
+        _head.localRotation = Quaternion.identity;
+    }
+
     private void UpdateRotation()
     {
+        if (CanRotateHead() == false)
+            return;
+
         float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity * 100f;
 
@@ -91,7 +133,10 @@ public sealed class PlayerCharacter : Pawn
 
     private void UpdateMovement(FlatVector inputDirection, bool wantsJump)
     {
-        Vector3 desiredVelocity = transform.TransformDirection(inputDirection) * GetSpeed();
+        Vector3 desiredVelocity = CanWalk() ?
+            transform.TransformDirection(inputDirection) * GetSpeed() :
+            Vector3.zero;
+        
         _velocityXZ = Vector3.MoveTowards(_velocityXZ, desiredVelocity, 25f * Time.deltaTime);
 
         if (_controller.isGrounded == true)
@@ -115,9 +160,19 @@ public sealed class PlayerCharacter : Pawn
         _controller.Move(finalMove);
     }
 
+    private bool CanRotateHead()
+    {
+        return IsDead == false;
+    }
+
+    private bool CanAct()
+    {
+        return IsDead == false;
+    }
+
     private bool CanWalk()
     {
-        return true;
+        return IsDead == false;
     }
 
     private float GetSpeed()
@@ -133,32 +188,6 @@ public sealed class PlayerCharacter : Pawn
     public override Quaternion GetCameraRotation()
     {
         return _head.rotation;
-    }
-
-}
-
-public abstract class Pawn : MonoBehaviour
-{
-    public bool WantsUnpossess { get; private set; }
-    public Player Player { get; private set; }
-
-    public abstract Vector3 GetCameraPosition();
-    public abstract Quaternion GetCameraRotation();
-    public virtual void PossessedTick() { }
-
-    public virtual void OnPossessed(Player player)
-    {
-        Player = player;
-    }
-
-    public virtual void OnUnpossessed()
-    {
-        Player = null;
-    }
-
-    protected void Unpossess()
-    {
-        WantsUnpossess = true;
     }
 
 }

@@ -38,7 +38,7 @@ public sealed class NotificationUI : MonoBehaviour
             Join(_label.DOFade(1f, 0.4f).From(0f)).
             Join(_label.rectTransform.
                 DOLocalMoveY(_label.rectTransform.localPosition.y, 0.2f).
-                From(_label.rectTransform.localPosition.y - 75f));
+                From(_label.rectTransform.localPosition.y - 25f));
     }
 
     private void Update()
