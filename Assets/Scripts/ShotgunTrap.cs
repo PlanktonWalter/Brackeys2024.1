@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,37 +11,61 @@ public sealed class ShotgunTrap : MonoBehaviour
     [SerializeField] private AudioSource _shootAudioSource;
     [SerializeField] private PlayerCharacter _playerCharacter;
 
-    private bool _isActivated;
-    private TimeSince _timeSinceLastActivation;
+    private bool IsDeactivated;
+
+    public void Deactivate()
+    {
+        IsDeactivated = true;
+    }
 
     private void OnEnable()
     {
         _door.Opened += OnDoorOpened;
+        _door.Opening += OnDoorOpening;
     }
 
     private void OnDisable()
     {
         _door.Opened -= OnDoorOpened;
+        _door.Opening -= OnDoorOpening;
+    }
+
+    private void OnDoorOpening()
+    {
+        if (IsDeactivated == false)
+            _playerCharacter.ApplyModifier(new ShotgunTrapModifier(), 5f);
     }
 
     private void OnDoorOpened()
     {
-        _isActivated = true;
-        _timeSinceLastActivation = new TimeSince(Time.time);
+        if (IsDeactivated == false)
+            Shoot();
     }
 
-    private void Update()
+    private void Shoot()
     {
-        if (_isActivated == false)
-            return;
+        _playerCharacter.Kill();
+        _shootSound.Play(_shootAudioSource);
+        Delayed.Do(() => _door.Close(), 0.7f);
+    }
 
-        if (_timeSinceLastActivation > 0.2f)
-        {
-            _playerCharacter.Kill();
-            _isActivated = false;
-            _shootSound.Play(_shootAudioSource);
-            Delayed.Do(() => _door.Close(), 0.7f);
-        }
+}
+
+public sealed class ShotgunTrapModifier : CharacterModifier
+{
+    public override float GetSpeedMultipler()
+    {
+        return 0.2f;
+    }
+
+    public override bool CanInteract()
+    {
+        return false;
+    }
+
+    public override bool CanJump()
+    {
+        return false;
     }
 
 }

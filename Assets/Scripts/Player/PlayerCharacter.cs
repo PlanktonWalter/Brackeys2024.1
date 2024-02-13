@@ -24,6 +24,7 @@ public sealed class PlayerCharacter : Pawn
     private TimeSince _timeSinceLastDeath = new TimeSince(float.NegativeInfinity);
     private Vector3 _spawnPosition;
     private Quaternion _spawnRotation;
+    private readonly List<CharacterModifier> _modifiers = new List<CharacterModifier>();
 
     public PlayerInteraction Interactor => _interactor;
     public Inventory Inventory => _inventory;
@@ -59,6 +60,12 @@ public sealed class PlayerCharacter : Pawn
         transform.position = _spawnPosition;
         transform.rotation = _spawnRotation;
         _head.localRotation = Quaternion.identity;
+    }
+
+    public void ApplyModifier(CharacterModifier modifier, float duration)
+    {
+        modifier.Init(duration);
+        _modifiers.Add(modifier);
     }
 
     public override void PossessedTick()
@@ -109,6 +116,16 @@ public sealed class PlayerCharacter : Pawn
 
     private void UpdateAlive(PlayerInput input)
     {
+        for (int i = _modifiers.Count - 1; i >= 0; i--)
+        {
+            var modifier = _modifiers[i];
+
+            if (modifier.TimeUntilExpires < 0)
+            {
+                _modifiers.RemoveAt(i);
+            }
+        }
+
         UpdateRotation(input);
         UpdateMovement(input);
 
@@ -161,7 +178,7 @@ public sealed class PlayerCharacter : Pawn
 
         if (_controller.isGrounded == true)
         {
-            _velocityY = input.WantsJump ? _jumpForce : -9.8f;
+            _velocityY = (input.WantsJump && CanJump()) ? _jumpForce : -9.8f;
         }
         else
         {
@@ -187,6 +204,23 @@ public sealed class PlayerCharacter : Pawn
 
     private bool CanInteract()
     {
+        foreach (var modifier in _modifiers)
+        {
+            if (modifier.CanInteract() == false)
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool CanJump()
+    {
+        foreach (var modifier in _modifiers)
+        {
+            if (modifier.CanJump() == false)
+                return false;
+        }
+
         return true;
     }
 
@@ -197,7 +231,16 @@ public sealed class PlayerCharacter : Pawn
 
     private float GetSpeed()
     {
-        return _speed;
+        var multipler = 1f;
+
+        foreach (var modifier in _modifiers)
+        {
+            var modifierMultipler = modifier.GetSpeedMultipler();
+            multipler = Mathf.Min(multipler, modifierMultipler);
+        }
+
+        multipler = Mathf.Max(0f, multipler);
+        return _speed * multipler;
     }
 
     public override Vector3 GetCameraPosition()
@@ -219,5 +262,20 @@ public sealed class PlayerCharacter : Pawn
         public int InteractionIndex;
         public bool WantsInteract => InteractionIndex != -1;
     }
+
+}
+
+public abstract class CharacterModifier
+{
+    public TimeUntil TimeUntilExpires { get; private set; }
+
+    public void Init(float duration)
+    {
+        TimeUntilExpires = new TimeUntil(Time.time + duration);
+    }
+
+    public virtual float GetSpeedMultipler() => 1f;
+    public virtual bool CanInteract() => true;
+    public virtual bool CanJump() => true;
 
 }

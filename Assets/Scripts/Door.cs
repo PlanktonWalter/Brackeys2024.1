@@ -7,8 +7,10 @@ public sealed class Door : MonoBehaviour
 {
 
     public event Action SomeoneKnocked;
+    public event Action Opening;
     public event Action Opened;
     public event Action Closed;
+    public event Action Closing;
 
     [SerializeField] private Collider _collision;
     [SerializeField] private Transform _rotator;
@@ -45,6 +47,8 @@ public sealed class Door : MonoBehaviour
         _IsCollisionSynched = false;
 
         _openSound?.Play(_audioSource);
+
+        Opening?.Invoke();
     }
 
     [ContextMenu("Close")]
@@ -59,6 +63,8 @@ public sealed class Door : MonoBehaviour
         _timeSinceAnimationStarted = new TimeSince(Time.time);
         _isAnimating = true;
         _IsCollisionSynched = false;
+
+        Closing?.Invoke();
     }
 
     public void Knock()
